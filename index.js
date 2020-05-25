@@ -27,7 +27,7 @@ var postgres=require('postgresql');
 
 var connection=postgres.createConnection({
   //host:"172.31.37.111",
-  host: "ubuntu@ec2-52-79-190-47.ap-northeast-2.compute.amazonaws.com",
+  host: "ec2-52-79-190-47.ap-northeast-2.compute.amazonaws.com",
   port:5432,//또는 22
   user:"foodpass",//계정 아이디
   password:"postgres",//계정 비밀번호
