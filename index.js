@@ -15,31 +15,58 @@ app.use(bodyParser.urlencoded({extended: true}))
 //db_configure.json 써먹기
 const db=new (require('./Database_Connecter'))('db_configure.gitignore');
 
-// const client=new Client({
-//   user:"postgres",
-//   host:"foodpassdb3.c8zpfcwi12bx.ap-northeast-2.rds.amazonaws.com",
-//   database:"myDatabase",
-//   password:"postgres",
-//   port:5432,
-// });
 
-// client.connect();
-// client.query('SELECT NOW()', (err,res)=>{
-//   console.log(err,res)
+// //데이터 입력
+// const truckInformSql="insert into foodtruck_tb(name, image, introduction, notice, origin_information, location) values($1, $2, $3, $4, $5, $6) Returning *";
+// const values=['name','image','introduction','notice','origin_information','location'];
+// db.query(truckInformSql, values, (err,res)=>{
+//   if(err){
+//     console.log(err.stack)
+//   }else{
+//     console.log(res.rows[0])
+//   }
+// })
+app.post('/insertTruck',(req,res)=>{
+  let name=req.body.name;
+  let image=req.body.image;
+  let introduction=req.body.introduction;
+  let notice=req.body.notice;
+  let origin_information=req.body.origin_information;
+  let location=req.body.location;
 
-// });
+  const truckInformSql="insert into foodtruck_tb(name, image, introduction, notice, origin_information, location) values($1, $2, $3, $4, $5, $6) Returning *";
+  const values=[name,image,introduction,notice,origin_information,location];
+  db.query(truckInformSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      console.log(res.rows[0])
+      res.send('name: '+name)
+    }
+  })
 
-//데이터 입력
-const truckInformSql="insert into foodtruck_tb(name, image, introduction, notice, origin_information, location) values($1, $2, $3, $4, $5, $6) Returning *";
-const values=['name','image','introduction','notice','origin_information','location'];
-db.query(truckInformSql, values, (err,res)=>{
-  if(err){
-    console.log(err.stack)
-  }else{
-    console.log(res.rows[0])
-  }
-})
+});
 
+app.post('/insertMenu',(req,res)=>{
+  let foodtruck_id=req.body.foodtruck_id;
+  let name=req.body.name;
+  let image=req.body.image;
+  let introduction=req.body.introduction;
+  let price=req.body.price;
+  let allergy_information=req.body.allergy_information;
+
+  const menuInformSql="insert into menu_tb(foodtruck_id, name,image ,introduction ,price ,allergy_information) values($1,$2,$3,$4,$5,$6)";
+  const values=[foodtruck_id,name,image,introduction,price,allergy_information];
+
+   db.query(menuInformSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      console.log(res.rows[0])
+      res.send('name: '+name)
+    }
+  })
+});
 
 //3. 기본 라우팅 라우터 모듈
 //req: 클라이언트로부터 넘어온 데이터가 저장된 객체

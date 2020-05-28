@@ -1,0 +1,40 @@
+--데이터 입력 sql
+insert into foodtruck_tb values(default, 'truckName','트럭 이미지', '소개말', '공지', '원산지 정보','위치');
+insert into user_tb values(default,null);
+insert into menu_tb(menu_id ,name,image ,introduction ,price ,allergy_information ) values(default, 'meuName',default,'메뉴 소개말',1000,'알러지 정보');
+insert into option_tb(option_id ,name,price) values(default,'optionName',500);
+
+--단순 주문했을 떄
+insert into user_order_menu_tb values (default,4001,1001,2001,3001,1,2,default,default,false,'추가 요청',false,default,1);
+update user_order_menu_tb set price =((select price from menu_tb where menu_tb.menu_id=user_order_menu_tb.menu_id )*menu_num
++(select price from option_tb where option_tb.option_id =user_order_menu_tb.option_id )*option_num);
+--주문 계산 했을때
+update user_order_menu_tb set order_date_time =current_timestamp, is_paid =true;
+select count(user_order_menu_id )as num_of_waiting,foodtruck_id from user_order_menu_tb where is_received =false group by foodtruck_id ;
+--음식 받았을 때
+update user_order_menu_tb set is_received =true;
+select count(user_order_menu_id )as num_of_waiting,foodtruck_id from user_order_menu_tb where is_received =false group by foodtruck_id ;
+--평점 남겼을 때
+update user_order_menu_tb set grade=3.5 where is_received =true;
+--운영자 입장에서 통계 보기
+select foodtruck_id, sum(price)as sales,avg(grade) as grade  from user_order_menu_tb group by foodtruck_id;
+=========================================================
+--데이터 입력
+const truckInformSql="insert into foodtruck_tb(name, image, introduction, notice, origin_information, location) values($1, $2, $3, $4, $5, $6) Returning *";
+const values=['name','image','introduction','notice','origin_information','location'];
+
+const userInformSql="insert into user_tb(foodtruck_id) values($1,$2);
+const values=[1001];
+
+const menuInformSql="insert into menu_tb(foodtruck_id, name,image ,introduction ,price ,allergy_information) values($1,$2,$3,$4,$5,$6)";
+const values=[1001,'menuName','메뉴이미지','메뉴소개',3000,'알러지정보'];
+
+const optionInformSql="insert into option_tb(menu_id,name,price) values($1,$2,$3)";
+const values=[2001,'optionName',400];
+
+
+---단순 주문했을때
+const orderSql="insert into user_order_menu_tb(user_id,foodtruck_id,menu_id,option_id,menu_num,option_num,order_date_time,price,is_paid,other_request,is_received,grade,order_number) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13);
+
+
+
