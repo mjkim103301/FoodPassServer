@@ -13,11 +13,10 @@ app.use(bodyParser.urlencoded({extended: true}))
 
 
 //db_configure.json 써먹기
-const db=new (require('./Database_Connecter'))('db_configure.gitignore');
+const db=new (require('./Database_Connecter'))('db_configure.json');
 
 
 //데이터 입력
-
 app.post('/insertTruck',(req,res)=>{
   let name=req.body.name;
   let image=req.body.image;
@@ -64,10 +63,10 @@ app.post('/insertMenu',(req,res)=>{
 app.post('/insertOption',(req,res)=>{
   let menu_id=req.body.menu_id;
   let name=req.body.name;
-  let price=req.body.price;
+  let extra_price=req.body.extra_price;
 
   const optionInformSql="insert into option_tb(menu_id,name,price) values($1,$2,$3)";
-  const values=[menu_id,name,price];
+  const values=[menu_id,name,extra_price];
 
    db.query(optionInformSql,values,(err,res)=>{
     if(err){
@@ -81,10 +80,10 @@ app.post('/insertOption',(req,res)=>{
 
 
 app.post('/insertUser',(req,res)=>{
-  let foodtruck_id=req.body.foodtruck_id;
+  let push_tocken=req.body.push_tocken;
 
-  const userInformSql="insert into user_tb(foodtruck_id) values($1)";
-  const values=[foodtruck_id];
+  const userInformSql="insert into user_tb(push_tocken) values($1)";
+  const values=[push_tocken];
 
    db.query(userInformSql,values,(err,res)=>{
     if(err){
@@ -96,7 +95,7 @@ app.post('/insertUser',(req,res)=>{
   })
 });
 
-
+/*
 //주문했을때
 app.post('/insertOrder',(req,res)=>{
   let user_id=req.body.user_id;
@@ -124,7 +123,7 @@ app.post('/insertOrder',(req,res)=>{
     }
   })
 });
-
+*/
 //3. 기본 라우팅 라우터 모듈
 //req: 클라이언트로부터 넘어온 데이터가 저장된 객체
 //res: 클라이언트에로 결과를 넘겨주기 위한 객체
