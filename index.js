@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({extended: true}))
 //db_configure.json 써먹기
 const db=new (require('./Database_Connecter'))('db_configure.json');
 
+//function
+function sendResult(res, json){
+  json.result=true;
+  res.send(JSON.stringify(json));
+}
 
 //데이터 입력
 app.post('/insertTruck',(req,res)=>{
@@ -32,7 +37,7 @@ app.post('/insertTruck',(req,res)=>{
       console.log(err.stack)
     }else{
       console.log(res.rows[0])
-      res.send('name: '+name)
+     // res.send('name: '+name)
     }
   })
 
@@ -54,7 +59,7 @@ app.post('/insertMenu',(req,res)=>{
       console.log(err.stack)
     }else{
       console.log(res.rows[0])
-      res.send('name: '+name)
+     // res.send('name: '+name)
     }
   })
 });
@@ -73,13 +78,16 @@ app.post('/insertOption',(req,res)=>{
       console.log(err.stack)
     }else{
       console.log(res.rows[0])
-      res.send('menuId: '+menu_id)
+     // res.send('menuId: '+menu_id)
     }
   })
 });
 
 
-app.post('/insertUser',(req,res)=>{
+//account
+//user만들고 아이디 리턴
+
+app.post('/account/create',(req,res)=>{
   let push_tocken=req.body.push_tocken;
 
   const userInformSql="insert into user_tb(push_tocken) values($1)";
@@ -90,10 +98,161 @@ app.post('/insertUser',(req,res)=>{
       console.log(err.stack)
     }else{
       console.log(res.rows[0])
-      res.send('truckId: '+foodtruck_id)
+      res.send('userID: '+ user_id)
     }
   })
 });
+
+//ordertable에서 userID가 같은 주문들을 시간순으로 리턴
+app.post('/account/orderHistory',(req,res)=>{
+  let user_id=req.body.user_id;
+  console.log("connect ${user_id}");
+
+  const orderSql="select order_tb.user_order_menu_id, menu_id, option_id, count from order_tb natural join user_order_menu_tb where user_id=$1  order by order_date_time";
+  const values=[user_id];
+
+   db.query(orderSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+     
+    }
+  })
+});
+
+//ListData
+//위치를 받아서 그 위치 xxm 안의 푸드트럭들을 리스트로 리턴 없으면 즐겨찾기?
+app.post('/listData/foodtruck',(req,res)=>{
+  let location=req.body.location;
+  console.log("connect ${location}");
+
+  const listSql="select * from foodtruck_tb where ST_DistanceSphere(location, $1)<=500";
+  const values=[location];
+
+   db.query(listSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+    }
+  })
+});
+
+//foodtruckID를 받으면 그 푸드트럭의 메뉴 리스트를 리턴
+app.post('/listData/menu',(req,res)=>{
+  let foodtruck_id=req.body.foodtruck_id;
+  console.log("connect ${foodtruck_id}");
+
+  const menuSql="select * from menu_tb where foodtruck_id=$1";
+  const values=[foodtruck_id];
+
+   db.query(menuSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+    }
+  })
+});
+
+//foodtruckID menuID 받으면 옵션들 리턴
+app.post('/listData/option',(req,res)=>{
+  let foodtruck_id=req.body.foodtruck_id;
+  let menu_id=req.body.menu_id;
+  console.log("connect ${foodtruck_id}, ${menu_id}");
+
+  const optionSql="select * from option_tb where foodtruck_id=$1 and menu_id=$2";
+  const values=[foodtruck_id, menu_id];
+
+   db.query(optionSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+    }
+  })
+});
+
+//infoData
+//foodtruckID받으면 푸드트럭의 정보 리턴
+app.post('/infoData/foodtruck',(req,res)=>{
+  let foodtruck_id=req.body.foodtruck_id;
+  console.log("connect ${foodtruck_id}");
+
+  const foodtruckSql="select * from foodtruck_tb where foodtruck_id=$1";
+  const values=[foodtruck_id];
+
+   db.query(foodtruckSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+    }
+  })
+});
+
+//foodtruckID, menuID받으면 메뉴 정보 리턴
+app.post('/infoData/menu',(req,res)=>{
+  let foodtruck_id=req.body.foodtruck_id;
+  let menu_id=req.body.menu_id;
+  console.log("connect ${foodtruck_id}, ${menu_id}");
+
+  const optionSql="select * from menu_tb where foodtruck_id=$1 and menu_id=$2";
+  const values=[foodtruck_id, menu_id];
+
+   db.query(optionSql,values,(err,res)=>{
+    if(err){
+      console.log(err.stack)
+    }else{
+      let result={
+        orderList: res.rows
+      };
+      sendResult(res, result);
+    }
+  })
+});
+
+//order
+//orderList받으면 그 오더들을 각 푸드트럭에 전달한 뒤, 각 푸드트럭이 응답하면 모으고 orderID를 부여한 뒤 리턴
+// app.post('/order/request',(req,res)=>{
+//   let foodtruck_id=req.body.foodtruck_id;
+//   let menu_id=req.body.menu_id;
+//   console.log("connect ${foodtruck_id}, ${menu_id}");
+
+//   const optionSql="select * from menu_tb where foodtruck_id=$1 and menu_id=$2";
+//   const values=[foodtruck_id, menu_id];
+
+//    db.query(optionSql,values,(err,res)=>{
+//     if(err){
+//       console.log(err.stack)
+//     }else{
+//       let result={
+//         orderList: res.rows
+//       };
+//       sendResult(res, result);
+//     }
+//   })
+// });
+
+
+
+//수령확인한 orderID를 받아 푸드트럭에 전달하고 응답을 받으면 리턴
 
 /*
 //주문했을때
